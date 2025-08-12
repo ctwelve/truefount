@@ -3,7 +3,6 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "ms-azuretools.vscode-containers",
-    "dsznajder.es7-react-js-snippets",
-    "ms-vscode-remote.remote-containers"
+    "dsznajder.es7-react-js-snippets"
   ]
 }
