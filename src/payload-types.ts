@@ -71,6 +71,7 @@ export interface Config {
     posts: Post;
     media: Media;
     categories: Category;
+    hashtags: Hashtag;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -92,6 +93,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    hashtags: HashtagsSelect<false> | HashtagsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -238,6 +240,7 @@ export interface Post {
   };
   relatedPosts?: (number | Post)[] | null;
   categories?: (number | Category)[] | null;
+  hashtags?: (number | Hashtag)[] | null;
   meta?: {
     title?: string | null;
     /**
@@ -397,6 +400,42 @@ export interface Category {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Canonical set of hashtags used across posts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hashtags".
+ */
+export interface Hashtag {
+  id: number;
+  /**
+   * Human-facing: e.g., DevOps, Catholicism, Networking.
+   */
+  title: string;
+  description?: string | null;
+  /**
+   * Alternate spellings that should resolve to this hashtag.
+   */
+  synonyms?:
+    | {
+        term?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Auto-derived from Synonyms; used for lookups. Do not edit.
+   */
+  aliasSlugs?:
+    | {
+        slug?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -957,6 +996,10 @@ export interface PayloadLockedDocument {
         value: number | Category;
       } | null)
     | ({
+        relationTo: 'hashtags';
+        value: number | Hashtag;
+      } | null)
+    | ({
         relationTo: 'users';
         value: number | User;
       } | null)
@@ -1171,6 +1214,7 @@ export interface PostsSelect<T extends boolean = true> {
   content?: T;
   relatedPosts?: T;
   categories?: T;
+  hashtags?: T;
   meta?:
     | T
     | {
@@ -1303,6 +1347,30 @@ export interface CategoriesSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hashtags_select".
+ */
+export interface HashtagsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  synonyms?:
+    | T
+    | {
+        term?: T;
+        id?: T;
+      };
+  aliasSlugs?:
+    | T
+    | {
+        slug?: T;
+        id?: T;
+      };
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }
