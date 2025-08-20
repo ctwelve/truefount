@@ -805,6 +805,7 @@ export const posts_rels = pgTable(
     path: varchar('path').notNull(),
     postsID: integer('posts_id'),
     categoriesID: integer('categories_id'),
+    hashtagsID: integer('hashtags_id'),
     usersID: integer('users_id'),
   },
   (columns) => ({
@@ -813,6 +814,7 @@ export const posts_rels = pgTable(
     pathIdx: index('posts_rels_path_idx').on(columns.path),
     posts_rels_posts_id_idx: index('posts_rels_posts_id_idx').on(columns.postsID),
     posts_rels_categories_id_idx: index('posts_rels_categories_id_idx').on(columns.categoriesID),
+    posts_rels_hashtags_id_idx: index('posts_rels_hashtags_id_idx').on(columns.hashtagsID),
     posts_rels_users_id_idx: index('posts_rels_users_id_idx').on(columns.usersID),
     parentFk: foreignKey({
       columns: [columns['parent']],
@@ -828,6 +830,11 @@ export const posts_rels = pgTable(
       columns: [columns['categoriesID']],
       foreignColumns: [categories.id],
       name: 'posts_rels_categories_fk',
+    }).onDelete('cascade'),
+    hashtagsIdFk: foreignKey({
+      columns: [columns['hashtagsID']],
+      foreignColumns: [hashtags.id],
+      name: 'posts_rels_hashtags_fk',
     }).onDelete('cascade'),
     usersIdFk: foreignKey({
       columns: [columns['usersID']],
@@ -937,6 +944,7 @@ export const _posts_v_rels = pgTable(
     path: varchar('path').notNull(),
     postsID: integer('posts_id'),
     categoriesID: integer('categories_id'),
+    hashtagsID: integer('hashtags_id'),
     usersID: integer('users_id'),
   },
   (columns) => ({
@@ -947,6 +955,7 @@ export const _posts_v_rels = pgTable(
     _posts_v_rels_categories_id_idx: index('_posts_v_rels_categories_id_idx').on(
       columns.categoriesID,
     ),
+    _posts_v_rels_hashtags_id_idx: index('_posts_v_rels_hashtags_id_idx').on(columns.hashtagsID),
     _posts_v_rels_users_id_idx: index('_posts_v_rels_users_id_idx').on(columns.usersID),
     parentFk: foreignKey({
       columns: [columns['parent']],
@@ -962,6 +971,11 @@ export const _posts_v_rels = pgTable(
       columns: [columns['categoriesID']],
       foreignColumns: [categories.id],
       name: '_posts_v_rels_categories_fk',
+    }).onDelete('cascade'),
+    hashtagsIdFk: foreignKey({
+      columns: [columns['hashtagsID']],
+      foreignColumns: [hashtags.id],
+      name: '_posts_v_rels_hashtags_fk',
     }).onDelete('cascade'),
     usersIdFk: foreignKey({
       columns: [columns['usersID']],
@@ -1113,6 +1127,67 @@ export const categories = pgTable(
     categories_parent_idx: index('categories_parent_idx').on(columns.parent),
     categories_updated_at_idx: index('categories_updated_at_idx').on(columns.updatedAt),
     categories_created_at_idx: index('categories_created_at_idx').on(columns.createdAt),
+  }),
+)
+
+export const hashtags_synonyms = pgTable(
+  'hashtags_synonyms',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    term: varchar('term'),
+  },
+  (columns) => ({
+    _orderIdx: index('hashtags_synonyms_order_idx').on(columns._order),
+    _parentIDIdx: index('hashtags_synonyms_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [hashtags.id],
+      name: 'hashtags_synonyms_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const hashtags_alias_slugs = pgTable(
+  'hashtags_alias_slugs',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    slug: varchar('slug'),
+  },
+  (columns) => ({
+    _orderIdx: index('hashtags_alias_slugs_order_idx').on(columns._order),
+    _parentIDIdx: index('hashtags_alias_slugs_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [hashtags.id],
+      name: 'hashtags_alias_slugs_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const hashtags = pgTable(
+  'hashtags',
+  {
+    id: serial('id').primaryKey(),
+    title: varchar('title').notNull(),
+    description: varchar('description'),
+    slug: varchar('slug'),
+    slugLock: boolean('slug_lock').default(true),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    hashtags_title_idx: uniqueIndex('hashtags_title_idx').on(columns.title),
+    hashtags_slug_idx: index('hashtags_slug_idx').on(columns.slug),
+    hashtags_updated_at_idx: index('hashtags_updated_at_idx').on(columns.updatedAt),
+    hashtags_created_at_idx: index('hashtags_created_at_idx').on(columns.createdAt),
   }),
 )
 
@@ -1783,6 +1858,7 @@ export const payload_locked_documents_rels = pgTable(
     postsID: integer('posts_id'),
     mediaID: integer('media_id'),
     categoriesID: integer('categories_id'),
+    hashtagsID: integer('hashtags_id'),
     usersID: integer('users_id'),
     redirectsID: integer('redirects_id'),
     formsID: integer('forms_id'),
@@ -1807,6 +1883,9 @@ export const payload_locked_documents_rels = pgTable(
     payload_locked_documents_rels_categories_id_idx: index(
       'payload_locked_documents_rels_categories_id_idx',
     ).on(columns.categoriesID),
+    payload_locked_documents_rels_hashtags_id_idx: index(
+      'payload_locked_documents_rels_hashtags_id_idx',
+    ).on(columns.hashtagsID),
     payload_locked_documents_rels_users_id_idx: index(
       'payload_locked_documents_rels_users_id_idx',
     ).on(columns.usersID),
@@ -1852,6 +1931,11 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['categoriesID']],
       foreignColumns: [categories.id],
       name: 'payload_locked_documents_rels_categories_fk',
+    }).onDelete('cascade'),
+    hashtagsIdFk: foreignKey({
+      columns: [columns['hashtagsID']],
+      foreignColumns: [hashtags.id],
+      name: 'payload_locked_documents_rels_hashtags_fk',
     }).onDelete('cascade'),
     usersIdFk: foreignKey({
       columns: [columns['usersID']],
@@ -2397,6 +2481,11 @@ export const relations_posts_rels = relations(posts_rels, ({ one }) => ({
     references: [categories.id],
     relationName: 'categories',
   }),
+  hashtagsID: one(hashtags, {
+    fields: [posts_rels.hashtagsID],
+    references: [hashtags.id],
+    relationName: 'hashtags',
+  }),
   usersID: one(users, {
     fields: [posts_rels.usersID],
     references: [users.id],
@@ -2446,6 +2535,11 @@ export const relations__posts_v_rels = relations(_posts_v_rels, ({ one }) => ({
     fields: [_posts_v_rels.categoriesID],
     references: [categories.id],
     relationName: 'categories',
+  }),
+  hashtagsID: one(hashtags, {
+    fields: [_posts_v_rels.hashtagsID],
+    references: [hashtags.id],
+    relationName: 'hashtags',
   }),
   usersID: one(users, {
     fields: [_posts_v_rels.usersID],
@@ -2503,6 +2597,28 @@ export const relations_categories = relations(categories, ({ one, many }) => ({
   }),
   breadcrumbs: many(categories_breadcrumbs, {
     relationName: 'breadcrumbs',
+  }),
+}))
+export const relations_hashtags_synonyms = relations(hashtags_synonyms, ({ one }) => ({
+  _parentID: one(hashtags, {
+    fields: [hashtags_synonyms._parentID],
+    references: [hashtags.id],
+    relationName: 'synonyms',
+  }),
+}))
+export const relations_hashtags_alias_slugs = relations(hashtags_alias_slugs, ({ one }) => ({
+  _parentID: one(hashtags, {
+    fields: [hashtags_alias_slugs._parentID],
+    references: [hashtags.id],
+    relationName: 'aliasSlugs',
+  }),
+}))
+export const relations_hashtags = relations(hashtags, ({ many }) => ({
+  synonyms: many(hashtags_synonyms, {
+    relationName: 'synonyms',
+  }),
+  aliasSlugs: many(hashtags_alias_slugs, {
+    relationName: 'aliasSlugs',
   }),
 }))
 export const relations_users_sessions = relations(users_sessions, ({ one }) => ({
@@ -2766,6 +2882,11 @@ export const relations_payload_locked_documents_rels = relations(
       references: [categories.id],
       relationName: 'categories',
     }),
+    hashtagsID: one(hashtags, {
+      fields: [payload_locked_documents_rels.hashtagsID],
+      references: [hashtags.id],
+      relationName: 'hashtags',
+    }),
     usersID: one(users, {
       fields: [payload_locked_documents_rels.usersID],
       references: [users.id],
@@ -2959,6 +3080,9 @@ type DatabaseSchema = {
   media: typeof media
   categories_breadcrumbs: typeof categories_breadcrumbs
   categories: typeof categories
+  hashtags_synonyms: typeof hashtags_synonyms
+  hashtags_alias_slugs: typeof hashtags_alias_slugs
+  hashtags: typeof hashtags
   users_sessions: typeof users_sessions
   users: typeof users
   redirects: typeof redirects
@@ -3024,6 +3148,9 @@ type DatabaseSchema = {
   relations_media: typeof relations_media
   relations_categories_breadcrumbs: typeof relations_categories_breadcrumbs
   relations_categories: typeof relations_categories
+  relations_hashtags_synonyms: typeof relations_hashtags_synonyms
+  relations_hashtags_alias_slugs: typeof relations_hashtags_alias_slugs
+  relations_hashtags: typeof relations_hashtags
   relations_users_sessions: typeof relations_users_sessions
   relations_users: typeof relations_users
   relations_redirects_rels: typeof relations_redirects_rels

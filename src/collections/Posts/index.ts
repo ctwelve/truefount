@@ -1,4 +1,14 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
+// Local normalizer to align hashtag searching with slug behavior
+const toHashtagSearchKey = (input?: string): string => {
+  if (typeof input !== 'string') return ''
+  return input
+    .replace(/^#/, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+}
 
 import {
   BlocksFeature,
@@ -131,6 +141,35 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hasMany: true,
               relationTo: 'categories',
+            },
+            {
+              name: 'hashtags',
+              label: 'Hashtags',
+              type: 'relationship',
+              admin: {
+                position: 'sidebar',
+              },
+              filterOptions: ({ req }) => {
+                // payload passes search text via req.query.search when fetching options
+                const search = (req?.query?.search as string) || ''
+                if (!search) return true
+
+                const norm = toHashtagSearchKey(search)
+
+                const or: Where[] = []
+                if (norm) {
+                  or.push({ slug: { equals: norm } })
+                  or.push({ 'aliasSlugs.slug': { equals: norm } })
+                }
+
+                // nice UX fallbacks
+                or.push({ title: { like: search } })
+                or.push({ 'synonyms.term': { like: search } })
+
+                return { or }
+              },
+              hasMany: true,
+              relationTo: 'hashtags',
             },
           ],
           label: 'Meta',
